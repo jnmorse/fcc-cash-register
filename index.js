@@ -20,9 +20,8 @@ const dem = {
 
 function checkCashRegister(price, paid, cid) {
   const cashTotal = round(cid.reduce(totalInDrawer, 0), 2)
-  let changeToGive = (paid - price)
+  let changeToGive = paid - price
 
-  console.log('cashTotal < changeToGive', cashTotal < changeToGive)
   if (cashTotal < changeToGive) {
     return {
       status: 'INSUFFICIENT_FUNDS',
@@ -45,14 +44,20 @@ function checkCashRegister(price, paid, cid) {
         return [ ...acc, [currency, amount]]
       }
 
-      changeToGive -= needed * dem[currency]
-      return [...acc, [currency, needed * dem[currency]]]
+      const total = round(needed * dem[currency], 2)
+
+      changeToGive -= total
+
+      return [...acc, [currency, total]]
     }
 
     return acc
   }, [])
 
-  if (change.reduce(totalInDrawer, 0) < changeToGive) {
+
+  let totalChange = change.reduce(totalInDrawer, 0)
+
+  if (totalChange < paid - price) {
     return {
       status: 'INSUFFICIENT_FUNDS',
       change: []
