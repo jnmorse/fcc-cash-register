@@ -1,73 +1,80 @@
-function totalInDrawer(acc, [currency, total]) {
-  return acc += total
-}
+const totalInDrawer = (acc, [, amount]) => acc + amount
 
 function round(value, decimals) {
-  return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+  return Number(`${Math.round(`${value}e${decimals}`)}e-${decimals}`)
 }
 
-const dem = {
+const denom = {
   'ONE HUNDRED': 100,
-  'TWENTY': 20,
-  'TEN': 10,
-  'FIVE': 5,
-  'ONE': 1,
-  'QUARTER': 0.25,
-  'DIME': 0.10,
-  'NICKLE': 0.05,
-  'PENNY': 0.01
+  TWENTY: 20,
+  TEN: 10,
+  FIVE: 5,
+  ONE: 1,
+  QUARTER: 0.25,
+  DIME: 0.10,
+  NICKEL: 0.05,
+  PENNY: 0.01
 }
 
+/* eslint-disable max-lines-per-function */
 function checkCashRegister(price, paid, cid) {
   const cashTotal = round(cid.reduce(totalInDrawer, 0), 2)
   let changeToGive = paid - price
 
   if (cashTotal < changeToGive) {
-    return {
+    return{
       status: 'INSUFFICIENT_FUNDS',
       change: []
     }
   } else if (cashTotal === changeToGive) {
-    return {
+    return{
       status: 'CLOSED',
       change: cid
     }
   }
 
   const change = cid.reverse().reduce((acc, [currency, amount]) => {
-    const needed = parseInt(changeToGive / dem[currency])
-    const onHand = parseInt(amount / dem[currency])
-
-    if (needed > 0) {
-      if (needed > onHand) {
-        changeToGive -= amount
-        return [ ...acc, [currency, amount]]
-      }
-
-      const total = round(needed * dem[currency], 2)
-
-      changeToGive -= total
-
-      return [...acc, [currency, total]]
+    if (amount === 0) {
+      return acc
     }
 
-    return acc
+    if (changeToGive < denom[currency]) {
+      return acc
+    }
+
+    const needed = Math.floor(changeToGive / denom[currency])
+
+    if (needed === 0) {
+      return acc
+    }
+
+    const neededTotal = needed * denom[currency]
+
+    if (neededTotal > amount) {
+      changeToGive = (Math.round(changeToGive * 100) - Math.round(amount * 100)) / 100
+      return[...acc, [currency, amount]]
+    }
+
+    changeToGive = (Math.round(changeToGive * 100) - Math.round(neededTotal * 100)) / 100
+
+    return[...acc, [currency, neededTotal]]
   }, [])
 
 
-  let totalChange = change.reduce(totalInDrawer, 0)
+  const totalChange = round(change.reduce(totalInDrawer, 0), 2)
 
   if (totalChange < paid - price) {
-    return {
+    return{
       status: 'INSUFFICIENT_FUNDS',
       change: []
     }
   }
 
-  return {
+  return{
     status: 'OPEN',
     change
   }
 }
+/* eslint-enable max-lines-per-function */
 
 module.exports = checkCashRegister
