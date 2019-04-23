@@ -44,10 +44,6 @@ function checkCashRegister(price, paid, cid) {
 
     const needed = Math.floor(changeToGive / denom[currency])
 
-    if (needed === 0) {
-      return acc
-    }
-
     const neededTotal = needed * denom[currency]
 
     if (neededTotal > amount) {
